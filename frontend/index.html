@@ -1,0 +1,1638 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" id="themeColor" content="#15131f" />
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='0'%3E%3Cstop offset='0' stop-color='%238B5CF6'/%3E%3Cstop offset='1' stop-color='%23EC4899'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='url(%23g)'/%3E%3Crect x='14' y='20' width='36' height='26' rx='4' fill='none' stroke='%23fff' stroke-width='3.5'/%3E%3Cpath d='M15 24 32 37 49 24' fill='none' stroke='%23fff' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+<title>MailProxy 邮箱</title>
+<style>
+/* ============================================================
+   MailProxy · 「冰态果冻」主题
+   与电脑版 DNS加速器 同一套视觉：弥散粉紫渐变、玻璃拟态卡片、
+   紫→品红渐变主按钮、圆角 12px、Segoe UI。
+   ============================================================ */
+:root {
+  --bg0: #FFF0F5; --bg1: #FFE4E1; --bg2: #E6E6FA;
+  --surface: rgba(255,255,255,0.70);
+  --surface-hi: rgba(255,255,255,0.90);
+  --surface-lo: rgba(255,255,255,0.55);
+  --sidebar: rgba(255,255,255,0.62);
+  --border: #F3DCE9;
+  --text: #1E1B4B;
+  --text2: #6366F1;
+  --text3: #A5A8D8;
+  --accent: #EC4899;
+  --accent-h: #F472B6;
+  --accent-p: #DB2777;
+  --grad: linear-gradient(90deg, #8B5CF6, #EC4899);
+  --green: #34C759;
+  --orange: #FF9500;
+  --red: #EE5A6F;
+  --purple: #8B5CF6;
+  --radius: 12px;
+  --card-bg: rgba(255,255,255,0.78);
+  --input-bg: rgba(255,255,255,0.68);
+  --btn-bg: rgba(255,255,255,0.62);
+  --panel-bg: rgba(255,255,255,0.35);
+  --subj: #4a4a6a;
+}
+/* ===== 深色模式 ===== */
+[data-theme="dark"] {
+  --bg0: #15131f; --bg1: #1d1830; --bg2: #241d3a;
+  --surface: rgba(42,36,64,0.72);
+  --surface-hi: rgba(54,46,82,0.92);
+  --surface-lo: rgba(34,29,52,0.55);
+  --sidebar: rgba(38,32,58,0.72);
+  --border: #3a2f55;
+  --text: #ECE9FB;
+  --text2: #B8A6F0;
+  --text3: #8A82B8;
+  --accent: #F472B6;
+  --accent-h: #F9A8D4;
+  --accent-p: #DB2777;
+  --grad: linear-gradient(90deg, #A78BFA, #F472B6);
+  --card-bg: rgba(46,40,68,0.82);
+  --input-bg: rgba(54,47,80,0.65);
+  --btn-bg: rgba(58,50,86,0.72);
+  --panel-bg: rgba(40,34,60,0.50);
+  --subj: #a99fc7;
+}
+[data-theme="dark"] body {
+  background:
+    radial-gradient(1100px 700px at 8% -8%,   rgba(60,48,92,0.95), transparent 60%),
+    radial-gradient(1000px 720px at 96% 4%,   rgba(46,38,72,0.90), transparent 62%),
+    radial-gradient(900px 640px at 20% 108%,  rgba(72,46,84,0.75), transparent 60%),
+    radial-gradient(880px 600px at 88% 100%,  rgba(40,34,62,0.78), transparent 62%),
+    #15131f;
+  background-attachment: fixed;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  font-family: "Segoe UI Variable Text","Segoe UI","Microsoft YaHei UI",sans-serif;
+  font-size: 14px; color: var(--text);
+  /* 弥散粉紫渐变：左上樱粉 → 右侧薰衣草 → 底部雾玫瑰（同 PC paintEvent） */
+  background:
+    radial-gradient(1100px 700px at 8% -8%,   rgba(255,228,225,0.95), transparent 60%),
+    radial-gradient(1000px 720px at 96% 4%,   rgba(230,230,250,0.90), transparent 62%),
+    radial-gradient(900px 640px at 20% 108%,  rgba(255,209,220,0.75), transparent 60%),
+    radial-gradient(880px 600px at 88% 100%,  rgba(216,191,246,0.65), transparent 62%),
+    var(--bg0);
+  background-attachment: fixed;
+  overflow: hidden;
+}
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: rgba(139,92,246,0.30); border-radius: 5px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(139,92,246,0.50); }
+::-webkit-scrollbar-track { background: transparent; }
+
+/* ===== 通用控件 ===== */
+.btn {
+  border: 1px solid var(--border); border-radius: 9px; cursor: pointer;
+  background: var(--btn-bg); color: var(--text);
+  padding: 7px 16px; font-size: 13px; font-weight: 500;
+  font-family: inherit; transition: all .15s ease;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.btn:hover { background: var(--surface-hi); }
+.btn:active { background: var(--surface-hi); }
+.btn.primary {
+  background: var(--grad); color: #fff; border: none; font-weight: 600;
+  box-shadow: 0 4px 14px rgba(236,72,153,0.30);
+}
+.btn.primary:hover { filter: brightness(1.07); box-shadow: 0 6px 18px rgba(236,72,153,0.40); }
+.btn.primary:disabled { background: #E8B7CF; box-shadow: none; cursor: default; }
+.btn.danger { color: var(--red); }
+.btn.danger:hover { background: rgba(238,90,111,0.10); }
+.btn:disabled { color: var(--text3); cursor: default; }
+.btn svg { flex-shrink: 0; }
+
+input[type="text"], input:not([type]), textarea, select {
+  font-family: inherit; font-size: 13.5px; color: var(--text);
+  background: var(--input-bg);
+  border: 1px solid var(--border); border-radius: 9px;
+  padding: 9px 12px; outline: none; transition: all .15s ease;
+}
+input:focus, textarea:focus, select:focus {
+  border: 1.5px solid var(--accent); background: var(--surface-hi);
+}
+select { cursor: pointer; }
+
+.card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 10px 34px rgba(88,70,170,0.10);
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+}
+.card-h {
+  padding: 13px 18px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 14px;
+}
+.card-h .tag { font-size: 12px; color: var(--text3); font-weight: 400; }
+.card-h .sp { margin-left: auto; }
+
+/* ===== 登录 ===== */
+.login-mask {
+  position: fixed; inset: 0; z-index: 20;
+  display: flex; align-items: center; justify-content: center;
+}
+.login-card {
+  width: 360px; padding: 38px 34px 30px; border-radius: 16px;
+  background: var(--card-bg); border: 1px solid var(--border);
+  box-shadow: 0 22px 60px rgba(88,70,170,0.28);
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+}
+.login-card .mark {
+  width: 52px; height: 52px; border-radius: 16px; background: var(--grad);
+  display: flex; align-items: center; justify-content: center; margin-bottom: 16px;
+  box-shadow: 0 8px 20px rgba(236,72,153,0.35);
+}
+.login-card h1 { margin: 0; font-size: 21px; letter-spacing: .5px; }
+.login-card .sub { color: var(--text3); font-size: 12px; margin: 5px 0 24px; }
+.login-card input { width: 100%; }
+.login-card .btn.primary { width: 100%; justify-content: center; margin-top: 16px; padding: 11px 0; font-size: 15px; }
+.login-tip { margin-top: 14px; font-size: 12px; color: var(--text3); text-align: center; }
+.theme-toggle {
+  width: 34px; height: 34px; border-radius: 50%; cursor: pointer; flex-shrink: 0;
+  border: 1px solid var(--border); background: var(--btn-bg); color: var(--text);
+  font-size: 16px; line-height: 1; display: inline-flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 12px rgba(88,70,170,0.16);
+  transition: all .15s ease;
+}
+.login-mask .theme-toggle { position: fixed; top: 18px; right: 20px; z-index: 25; width: 40px; height: 40px; font-size: 18px; }
+.theme-toggle:hover { background: var(--surface-hi); transform: scale(1.06); }
+.theme-toggle:active { transform: scale(0.96); }
+
+/* ===== 主框架 ===== */
+#topbar {
+  height: 54px; display: flex; align-items: center; gap: 14px; padding: 0 20px;
+}
+#topbar .logo { display: flex; align-items: center; gap: 10px; font-size: 17px; font-weight: 700; }
+#topbar .logo .mark {
+  width: 32px; height: 32px; border-radius: 10px; background: var(--grad);
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 12px rgba(236,72,153,0.32);
+}
+#topbar .domain {
+  background: var(--btn-bg); border: 1px solid var(--border);
+  color: var(--text2); border-radius: 14px; padding: 4px 14px; font-size: 12px;
+}
+#topbar .right { margin-left: auto; display: flex; gap: 8px; }
+.linkbtn {
+  border: none; background: transparent; cursor: pointer; font-family: inherit;
+  font-size: 13px; color: var(--text2); padding: 7px 14px; border-radius: 8px; font-weight: 500;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.linkbtn:hover { background: rgba(139,92,246,0.10); }
+.linkbtn.quit:hover { background: rgba(238,90,111,0.10); color: var(--red); }
+
+#app { display: flex; height: calc(100vh - 54px); padding: 0 16px 16px; gap: 14px; }
+#sidebar {
+  width: 188px; flex-shrink: 0; border-radius: 14px; padding: 14px 10px;
+  background: var(--sidebar); border: 1px solid var(--border);
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 10px 34px rgba(88,70,170,0.08);
+  display: flex; flex-direction: column; gap: 6px;
+}
+.btn-compose {
+  width: 100%; padding: 11px 0; border: none; border-radius: 10px; cursor: pointer;
+  background: var(--grad); color: #fff; font-size: 15px; font-weight: 600;
+  font-family: inherit; box-shadow: 0 6px 16px rgba(236,72,153,0.32);
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  transition: all .15s ease;
+}
+.btn-compose:hover { filter: brightness(1.07); box-shadow: 0 8px 20px rgba(236,72,153,0.42); }
+.folders { margin-top: 12px; display: flex; flex-direction: column; gap: 4px; }
+.folder {
+  display: flex; align-items: center; gap: 9px; padding: 10px 12px; border-radius: 9px;
+  cursor: pointer; color: var(--text2); font-size: 13.5px; border: none; background: transparent;
+  width: 100%; text-align: left; font-family: inherit; transition: all .15s ease;
+}
+.folder:hover { background: rgba(139,92,246,0.10); color: var(--text); }
+.folder.active { background: rgba(236,72,153,0.12); color: var(--accent); font-weight: 600; }
+.folder .cnt { margin-left: auto; font-size: 12px; color: var(--text3); }
+.folder.active .cnt { color: var(--accent); }
+
+/* 折叠分组：grid-rows 0fr→1fr 丝滑拉出 */
+.nav-group { display: flex; flex-direction: column; }
+.group-toggle .caret { margin-left: auto; font-size: 11px; color: var(--text3); transition: transform .25s ease; }
+.group-toggle.open .caret { transform: rotate(90deg); }
+.sub { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .28s cubic-bezier(.4,0,.2,1); }
+.sub.open { grid-template-rows: 1fr; }
+.sub-inner { overflow: hidden; display: flex; flex-direction: column; gap: 2px; }
+.subfolder { padding: 8px 12px 8px 20px; font-size: 13px; }
+
+/* ===== 其他应用（侧栏最底部，点击向上丝滑拉出） ===== */
+.otherapps-wrap { position: relative; margin-top: auto; padding-top: 8px; }
+.otherapps-btn {
+  width: 100%; display: flex; align-items: center; gap: 9px;
+  padding: 8px 12px; border-radius: 9px; cursor: pointer;
+  color: var(--text2); font-size: 12.5px; border: 1px dashed var(--border);
+  background: transparent; text-align: left; font-family: inherit;
+  transition: background .15s ease, color .15s ease;
+}
+.otherapps-btn:hover { background: rgba(139,92,246,0.10); color: var(--text); }
+.otherapps-btn .caret { margin-left: auto; font-size: 10px; color: var(--text3); transition: transform .25s ease; }
+.otherapps-btn.open .caret { transform: rotate(180deg); }
+.otherapps-pop {
+  position: absolute; left: 0; right: 0; bottom: calc(100% + 8px);
+  background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px;
+  box-shadow: 0 14px 40px rgba(88,70,170,0.18);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  padding: 6px; display: flex; flex-direction: column; gap: 2px;
+  opacity: 0; transform: translateY(12px) scale(.97); transform-origin: bottom center;
+  pointer-events: none; visibility: hidden;
+  transition: opacity .26s ease, transform .28s cubic-bezier(.4,0,.2,1), visibility .26s;
+}
+.otherapps-pop.open { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; visibility: visible; }
+.otherapps-item {
+  display: flex; align-items: center; gap: 9px; padding: 9px 11px; border-radius: 8px;
+  color: var(--text2); font-size: 13px; text-decoration: none; cursor: pointer;
+  transition: background .12s ease, color .12s ease;
+}
+.otherapps-item:hover { background: rgba(139,92,246,0.10); color: var(--text); }
+
+#view { flex: 1; overflow: auto; min-width: 0; }
+
+/* ===== 邮件列表 ===== */
+.mrow {
+  display: flex; align-items: center; gap: 12px; padding: 13px 18px;
+  border-bottom: 1px solid rgba(243,220,233,0.85); cursor: pointer; transition: background .12s;
+}
+.mrow:last-child { border-bottom: none; }
+.mrow:hover { background: rgba(236,72,153,0.06); }
+.mrow .avatar {
+  width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
+  background: var(--grad); color: #fff; font-size: 15px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+}
+.mrow .from { width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
+.mrow .subj { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--subj); }
+.mrow .time { color: var(--text3); font-size: 12px; flex-shrink: 0; }
+.empty { padding: 48px; text-align: center; color: var(--text3); }
+
+/* ===== 读信 ===== */
+.read-h { padding: 16px 20px 14px; border-bottom: 1px solid var(--border); }
+.read-h h2 { margin: 0 0 8px; font-size: 17px; }
+.read-h .meta { color: var(--text3); font-size: 12px; line-height: 1.8; }
+.read-h .meta b { color: var(--text2); font-weight: 500; }
+.read-h .ops { margin-top: 12px; display: flex; gap: 8px; }
+.read-body { padding: 18px 20px; white-space: pre-wrap; word-break: break-word; line-height: 1.75; min-height: 140px; }
+
+/* ===== 写信 ===== */
+.c-row { display: flex; align-items: flex-start; border-bottom: 1px solid rgba(243,220,233,0.85); }
+.c-row label {
+  width: 78px; text-align: right; padding: 13px 12px 0 0; color: var(--text2);
+  font-size: 13px; flex-shrink: 0; font-weight: 500;
+}
+.c-row input, .c-row textarea, .c-row .selwrap {
+  flex: 1; border: none; border-radius: 0; background: transparent; margin: 8px 14px 8px 0;
+}
+.c-row input { padding: 5px 0; }
+.c-row textarea { min-height: 240px; resize: vertical; padding: 5px 0; line-height: 1.7; }
+.selwrap { display: flex; align-items: center; gap: 8px; padding: 4px 0; }
+.selwrap select { flex: 1; max-width: 460px; }
+.c-toolbar { display: flex; align-items: center; gap: 8px; padding: 12px 14px; border-bottom: 1px solid rgba(243,220,233,0.85); }
+.c-atts { padding: 10px 14px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; min-height: 20px; }
+.att {
+  display: flex; align-items: center; gap: 7px; padding: 6px 11px; font-size: 12px;
+  background: rgba(139,92,246,0.08); border: 1px solid rgba(139,92,246,0.22);
+  color: var(--text2); border-radius: 8px; max-width: 280px;
+}
+.att .nm { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.att .sz { color: var(--text3); flex-shrink: 0; }
+.att .x { cursor: pointer; color: var(--text3); font-weight: 700; flex-shrink: 0; border: none; background: none; font-size: 13px; padding: 0; }
+.att .x:hover { color: var(--red); }
+.c-foot {
+  padding: 11px 16px; color: var(--text3); font-size: 12px; line-height: 1.7;
+  border-top: 1px solid rgba(243,220,233,0.85); border-radius: 0 0 var(--radius) var(--radius);
+  background: var(--panel-bg);
+}
+.new-addr-box {
+  display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+  padding: 10px 14px 10px 88px; background: var(--panel-bg);
+  border-bottom: 1px solid rgba(243,220,233,0.85);
+}
+
+/* ===== 账号池 ===== */
+.arow { display: flex; align-items: center; gap: 12px; padding: 12px 18px; border-bottom: 1px solid rgba(243,220,233,0.85); }
+.arow:last-child { border-bottom: none; }
+.arow .avatar {
+  width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0; font-size: 14px;
+  background: linear-gradient(135deg, #8B5CF6, #F472B6); color: #fff; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+}
+.arow .loc { font-weight: 600; min-width: 180px; }
+.arow .note { color: var(--text3); font-size: 12px; flex: 1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.addr-form { padding: 14px 18px; border-bottom: 1px solid var(--border); display: flex; gap: 8px; flex-wrap: wrap; background: var(--panel-bg); }
+
+/* ===== Toast（纵向堆叠，不重叠） ===== */
+#toast-box {
+  position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+  z-index: 99; display: flex; flex-direction: column; gap: 8px; align-items: center; pointer-events: none;
+}
+.toast {
+  background: rgba(30,27,75,0.92); color: #fff; padding: 11px 22px;
+  border-radius: 10px; font-size: 13px; max-width: 80vw; text-align: center;
+  box-shadow: 0 10px 30px rgba(30,27,75,0.35);
+  animation: rise .2s ease;
+}
+@keyframes rise { from { opacity: 0; transform: translateY(8px); } }
+.hidden { display: none !important; }
+
+/* ===== 卡片弹窗（替代浏览器原生 confirm / alert） ===== */
+.modal-mask {
+  position: fixed; inset: 0; z-index: 60;
+  background: rgba(20,16,40,0.45);
+  display: flex; align-items: center; justify-content: center;
+  backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
+  animation: fade .15s ease;
+}
+.modal-card {
+  width: 348px; max-width: 90vw; padding: 22px 22px 18px; border-radius: 14px;
+  background: var(--card-bg); border: 1px solid var(--border);
+  box-shadow: 0 24px 60px rgba(20,16,40,0.38);
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); color: var(--text);
+}
+.modal-card h3 { margin: 0 0 8px; font-size: 16px; }
+.modal-card .m-body { color: var(--text2); font-size: 13.5px; line-height: 1.7; margin-bottom: 16px; word-break: break-word; }
+.modal-card .m-body b { color: var(--text); }
+.modal-card .m-ops { display: flex; gap: 8px; justify-content: flex-end; }
+@keyframes fade { from { opacity: 0; } }
+
+/* ===== 复选框 ===== */
+.msel, .msel-all input { width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer; flex-shrink: 0; }
+.msel-all { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; color: var(--text3); cursor: pointer; margin-left: 10px; }
+.bar-sel { font-size: 12px; color: var(--text3); margin-left: 10px; }
+
+/* ===== 附件读取进度条 ===== */
+.up-progress { display: flex; align-items: center; gap: 8px; margin: 6px 14px; }
+.up-progress .track { flex: 1; height: 6px; background: var(--panel-bg); border-radius: 3px; overflow: hidden; }
+.up-progress .bar { height: 100%; width: 0; background: var(--grad); border-radius: 3px; transition: width .15s ease; }
+.up-progress span { font-size: 12px; color: var(--text3); flex-shrink: 0; }
+
+/* ===== 账号头像 / 裁剪 ===== */
+.avatar-btn { cursor: pointer; transition: transform .15s ease; }
+.avatar-btn:hover { transform: scale(1.08); box-shadow: 0 0 0 2px var(--accent-h); }
+.arow .avatar img, .mrow .avatar img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block; }
+.crop-cv { display: block; margin: 10px auto 0; border-radius: 10px; cursor: move; touch-action: none; max-width: 88vw; border: 1px solid var(--border); }
+.crop-tip { color: var(--text3); font-size: 12px; text-align: center; margin-top: 6px; }
+
+/* ===== 云盘空间占用条 ===== */
+.drv-track { height: 8px; background: var(--panel-bg); border-radius: 4px; overflow: hidden; }
+.drv-bar { height: 100%; background: var(--grad); border-radius: 4px; transition: width .3s ease; }
+
+/* ===== 手机端适配（≤720px） ===== */
+@media (max-width: 720px) {
+  #topbar { padding: 0 12px; gap: 8px; }
+  #topbar .logo { font-size: 15px; }
+  #topbar .domain { display: none; }
+  #topbar .right { gap: 2px; }
+  .linkbtn { padding: 7px 8px; font-size: 12.5px; }
+  .theme-toggle { width: 32px; height: 32px; font-size: 15px; }
+  .login-mask .theme-toggle { top: 12px; right: 12px; }
+
+  /* 侧栏 → 顶部横向导航 */
+  #app { flex-direction: column; padding: 0 10px 10px; gap: 10px; }
+  #sidebar { width: 100%; flex-direction: row; align-items: center; padding: 8px 10px; gap: 8px; }
+  .btn-compose { width: auto; padding: 8px 16px; font-size: 13.5px; }
+  .folders { margin-top: 0; flex-direction: row; margin-left: auto; gap: 2px; }
+  .folder { padding: 8px 10px; width: auto; }
+  .folder .cnt { display: none; }
+
+  .card-h { flex-wrap: wrap; row-gap: 6px; padding: 11px 12px; }
+  .mrow { padding: 11px 10px; gap: 8px; }
+  .mrow .avatar { width: 30px; height: 30px; font-size: 13px; }
+  .mrow .from { width: 96px; font-size: 13px; }
+  .mrow .subj { min-width: 0; }
+  .mrow .time { display: none; }
+  .read-h { padding: 14px 14px 12px; }
+  .read-h .ops { flex-wrap: wrap; }
+  .read-body { padding: 14px; }
+
+  /* 写信：标签在上、输入在下 */
+  .c-toolbar { flex-wrap: wrap; row-gap: 6px; padding: 10px 12px; }
+  .c-row { flex-wrap: wrap; }
+  .c-row label { width: 100%; text-align: left; padding: 10px 14px 0; }
+  .c-row input, .c-row textarea, .c-row .selwrap { margin: 4px 14px 10px; }
+  .c-row textarea { min-height: 160px; }
+  .selwrap { flex-wrap: wrap; }
+  .selwrap select { max-width: none; min-width: 0; }
+  .new-addr-box { padding-left: 14px; }
+  .new-addr-box input { width: auto !important; flex: 1 1 130px; }
+  .c-atts { padding: 8px 12px; }
+
+  /* 账号池：行内换行，备注换到下一行 */
+  .arow { flex-wrap: wrap; row-gap: 6px; padding: 11px 10px; }
+  .arow .avatar { width: 28px; height: 28px; font-size: 12px; }
+  .arow .loc { min-width: 0; flex: 1; font-size: 13px; }
+  .arow .note { order: 10; flex-basis: 100%; white-space: normal; }
+  .arow .btn { padding: 6px 10px; font-size: 12px; }
+  .addr-form input { width: auto !important; flex: 1 1 130px; }
+
+  .login-card { width: min(360px, calc(100vw - 28px)); padding: 30px 24px 24px; }
+  .toast { max-width: 86vw; }
+}
+</style>
+</head>
+<body>
+
+<!-- 顶栏 -->
+<div id="topbar" style="display:none">
+  <div class="logo">
+    <span class="mark">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="3"/><path d="m3 6 9 7 9-7"/></svg>
+    </span>
+    MailProxy 邮箱
+  </div>
+  <span class="domain" id="domainLabel">your-domain.example.com</span>
+  <div class="right">
+    <button class="theme-toggle" onclick="toggleTheme()" title="切换深色 / 浅色">🌙</button>
+    <button class="linkbtn" onclick="showCompose()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>写信
+    </button>
+    <button class="linkbtn quit" onclick="logout()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg>退出
+    </button>
+  </div>
+</div>
+
+<!-- 主界面 -->
+<div id="app" style="display:none">
+  <div id="sidebar">
+    <button class="btn-compose" onclick="showCompose()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>写 信
+    </button>
+    <div class="folders">
+      <button class="folder active" id="nav-inbox" onclick="showInbox('')">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
+        <span>收件箱</span><span class="cnt" id="inbox-cnt"></span>
+      </button>
+      <div class="nav-group">
+        <button class="folder group-toggle" onclick="toggleGroup('outbox')">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 18 16 18 14 21 10 21 8 18 2 18"/><path d="M5.45 12.11 2 18v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 11H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
+          <span>发件箱</span><span class="caret">▸</span>
+        </button>
+        <div class="sub" id="sub-outbox"><div class="sub-inner">
+          <button class="folder subfolder" id="nav-sent" onclick="showSent()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            <span>已发送</span>
+          </button>
+          <button class="folder subfolder" id="nav-drafts" onclick="showDrafts()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+            <span>草稿箱</span>
+          </button>
+        </div></div>
+      </div>
+      <button class="folder" id="nav-addr" onclick="showAddr()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span>账号池</span>
+      </button>
+      <div class="nav-group">
+        <button class="folder group-toggle" onclick="toggleGroup('more')">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+          <span>其他</span><span class="caret">▸</span>
+        </button>
+        <div class="sub" id="sub-more"><div class="sub-inner">
+          <button class="folder subfolder" id="nav-star" onclick="showStarred()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <span>星标邮箱</span>
+          </button>
+          <button class="folder subfolder" id="nav-del" onclick="showDeleted()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            <span>已删除</span>
+          </button>
+          <button class="folder subfolder" id="nav-junk" onclick="showJunk()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+            <span>垃圾箱</span>
+          </button>
+          <button class="folder subfolder" id="nav-contact" onclick="showContacts()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <span>重要联系人</span>
+          </button>
+        </div></div>
+      </div>
+      <div class="nav-group">
+        <button class="folder group-toggle" onclick="toggleGroup('apps')">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          <span>应用</span><span class="caret">▸</span>
+        </button>
+        <div class="sub" id="sub-apps"><div class="sub-inner">
+          <button class="folder subfolder" id="nav-drive" onclick="showDrive()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="12" x2="2" y2="12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
+            <span>云盘</span>
+          </button>
+          <button class="folder subfolder" id="nav-contacts" onclick="showContactsApp()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            <span>通讯录</span>
+          </button>
+          <button class="folder subfolder" id="nav-notes" onclick="showNotes()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            <span>记事本</span>
+          </button>
+        </div></div>
+      </div>
+    </div>
+    <div class="otherapps-wrap">
+      <div class="otherapps-pop" id="otherapps-pop">
+        <div style="padding:8px 12px;font-size:12px;opacity:.55">在此添加你的外部应用链接（见源码注释示例）</div>
+        <!-- 在此自行添加外部应用跳转链接。复制下面示例、把 href 换成你自己的地址即可：
+        <a class="otherapps-item" href="https://example.com/" target="_blank" rel="noopener">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+          <span>示例应用</span>
+        </a>
+        -->
+      </div>
+      <button class="otherapps-btn" id="otherapps-btn" onclick="toggleOtherApps()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <span>其他应用</span><span class="caret">▾</span>
+      </button>
+    </div>
+  </div>
+  <div id="view"></div>
+</div>
+
+<!-- 登录 -->
+<div class="login-mask" id="login">
+  <button class="theme-toggle" onclick="toggleTheme()" title="切换深色 / 浅色">🌙</button>
+  <div class="login-card">
+    <div class="mark">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="3"/><path d="m3 6 9 7 9-7"/></svg>
+    </div>
+    <h1>MailProxy 邮箱</h1>
+    <div class="sub" id="loginSub">@your-domain.example.com · 收发管理</div>
+    <input id="ac" placeholder="请输入账号" autocomplete="username" onkeydown="if(event.key==='Enter')doLogin()" />
+    <button class="btn primary" onclick="doLogin()">登 录</button>
+    <div class="login-tip">仅限授权用户使用</div>
+  </div>
+</div>
+
+<script>
+const LS_TK = 'mp_tk';
+const DOMAIN = 'your-domain.example.com'; // 仅用于界面展示；后端发信域名由 env.DOMAIN 决定
+const MAX_SINGLE = 30 * 1048576;   // 邮件单附件上限 30MB（Resend 按 base64 后 40MB 计，30MB 为临界值）
+const MAX_TOTAL  = 30 * 1048576;   // 邮件附件总量上限 30MB
+const DRIVE_MAX  = 25 * 1048576;   // 云盘单文件上限 25MB（免费版 10ms CPU 实测：25MB 稳定通过，30MB 超 CPU）
+let state = { tk: localStorage.getItem(LS_TK) };
+let atts = [];        // 待发附件 [{ filename, type, size, content(b64) }]
+let addrPool = [];    // 账号池缓存
+let sending = false;  // 发送中标志（期间锁定附件增删）
+
+function api(path, opts = {}) {
+  return fetch(path, {
+    ...opts,
+    headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + state.tk, ...(opts.headers || {}) }
+  }).then(r => r.json().catch(() => ({ ok: false })));
+}
+function toast(msg) {
+  let box = document.getElementById('toast-box');
+  if (!box) { box = document.createElement('div'); box.id = 'toast-box'; document.body.appendChild(box); }
+  const d = document.createElement('div'); d.className = 'toast'; d.textContent = msg;
+  box.appendChild(d); setTimeout(() => d.remove(), 2600);
+}
+function esc(s) { return (s || '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+function fmtTime(ts) { const d = new Date(ts), n = new Date(); return d.toDateString() === n.toDateString() ? d.toTimeString().slice(0,5) : (d.getMonth()+1) + '-' + d.getDate(); }
+function fmtSize(b) { return b > 1048576 ? (b/1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(b/1024)) + ' KB'; }
+function initial(s) { const t = (s || '?').trim(); return t ? t[0].toUpperCase() : '?'; }
+
+// 选择状态（收件箱 / 账号池 批量操作）
+let selIds = new Set();      // 已勾选邮件 id
+let selAddrs = new Set();    // 已勾选账号 local
+let curInboxTo = '';         // 当前收件箱过滤（'' = 全部）
+let inboxSelMode = false;    // 收件箱是否处于多选模式
+let addrSelMode = false;     // 账号池是否处于多选模式
+
+// ---------- 页面内卡片弹窗（替代浏览器原生 confirm / alert） ----------
+function confirmModal({ title, body, okText = '确定', danger = false, onOk }) {
+  const mask = document.createElement('div');
+  mask.className = 'modal-mask';
+  mask.innerHTML = `
+    <div class="modal-card">
+      <h3>${esc(title)}</h3>
+      <div class="m-body">${body}</div>
+      <div class="m-ops">
+        <button class="btn" id="m-cancel">取消</button>
+        <button class="btn ${danger ? 'danger' : 'primary'}" id="m-ok">${esc(okText)}</button>
+      </div>
+    </div>`;
+  document.body.appendChild(mask);
+  const close = () => mask.remove();
+  mask.addEventListener('click', e => { if (e.target === mask) close(); });
+  mask.querySelector('#m-cancel').onclick = close;
+  mask.querySelector('#m-ok').onclick = () => { close(); if (onOk) onOk(); };
+}
+
+// ---------- 主题（深色 / 浅色） ----------
+function applyTheme(t) {
+  document.documentElement.setAttribute('data-theme', t);
+  localStorage.setItem('mp_theme', t);
+  document.querySelectorAll('.theme-toggle').forEach(b => b.textContent = (t === 'dark') ? '☀️' : '🌙');
+  const tc = document.getElementById('themeColor');
+  if (tc) tc.content = (t === 'dark') ? '#15131f' : '#FFF0F5';
+}
+function toggleTheme() {
+  const cur = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+  applyTheme(cur === 'dark' ? 'light' : 'dark');
+}
+applyTheme(localStorage.getItem('mp_theme') || 'dark');   // 默认深色，首次访问即深色
+
+function setActive(id) {
+  ['nav-inbox','nav-addr','nav-sent','nav-drafts','nav-star','nav-del','nav-junk','nav-contact','nav-drive','nav-contacts','nav-notes']
+    .forEach(x => { const el = document.getElementById(x); if (el) el.classList.toggle('active', x === id); });
+}
+// 折叠分组展开/收起（记忆状态）
+function toggleGroup(name) {
+  const sub = document.getElementById('sub-' + name);
+  const btn = sub.previousElementSibling;
+  const open = !sub.classList.contains('open');
+  sub.classList.toggle('open', open);
+  btn.classList.toggle('open', open);
+  localStorage.setItem('mp_grp_' + name, open ? '1' : '0');
+}
+function initGroups() {
+  ['outbox', 'more', 'apps'].forEach(name => {
+    if (localStorage.getItem('mp_grp_' + name) === '1') {
+      document.getElementById('sub-' + name).classList.add('open');
+      document.getElementById('sub-' + name).previousElementSibling.classList.add('open');
+    }
+  });
+}
+function toggleOtherApps() {
+  const pop = document.getElementById('otherapps-pop');
+  const btn = document.getElementById('otherapps-btn');
+  const open = !pop.classList.contains('open');
+  pop.classList.toggle('open', open);
+  btn.classList.toggle('open', open);
+}
+document.addEventListener('click', e => {
+  const wrap = document.querySelector('.otherapps-wrap');
+  const pop = document.getElementById('otherapps-pop');
+  if (pop && pop.classList.contains('open') && wrap && !wrap.contains(e.target)) {
+    pop.classList.remove('open');
+    document.getElementById('otherapps-btn').classList.remove('open');
+  }
+});
+
+// ---------- 登录 ----------
+async function doLogin() {
+  const account = document.getElementById('ac').value.trim();
+  if (!account) { toast('请输入账号'); return; }
+  const r = await fetch('/api/login', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ account })
+  }).then(r => r.json().catch(() => ({ ok: false })));
+  if (r.ok && r.token) { localStorage.setItem(LS_TK, r.token); state.tk = r.token; enter(); }
+  else if (r.error && /频繁/.test(r.error)) toast(r.error);
+  else toast('账号或权限不对');
+}
+function logout() { localStorage.removeItem(LS_TK); location.reload(); }
+function enter() {
+  document.getElementById('login').classList.add('hidden');
+  document.getElementById('topbar').style.display = 'flex';
+  document.getElementById('app').style.display = 'flex';
+  showInbox();
+}
+
+// ---------- 账号池（地址别名） ----------
+async function loadAddrPool() {
+  const r = await api('/api/addresses');
+  addrPool = Array.isArray(r) ? r : [];
+  return addrPool;
+}
+// 把账号池渲染进发件人下拉；prefill 用于回复/编辑时预选
+async function fillFromSelect(prefill) {
+  const sel = document.getElementById('f_from');
+  if (!sel) return;
+  if (!addrPool.length) await loadAddrPool();
+  sel.innerHTML = addrPool.map(a =>
+    `<option value="${esc(a.local)}">${esc(a.local)}${a.note ? '（' + esc(a.note) + '）' : ''}</option>`
+  ).join('') + `<option value="__new__">➕ 新建邮箱…</option>`;
+  sel.onchange = () => { if (sel.value === '__new__') openNewAddr(); };
+  if (prefill && addrPool.some(a => a.local === prefill)) sel.value = prefill;
+}
+function openNewAddr() {
+  document.getElementById('new-addr-box').classList.remove('hidden');
+  setTimeout(() => document.getElementById('n_local').focus(), 30);
+}
+function cancelNewAddr() {
+  document.getElementById('new-addr-box').classList.add('hidden');
+  const sel = document.getElementById('f_from');
+  if (sel && addrPool.length) sel.selectedIndex = 0; else if (sel) sel.value = '__new__';
+}
+async function saveNewAddr() {
+  let local = document.getElementById('n_local').value.trim();
+  const note = document.getElementById('n_note').value.trim();
+  if (!local) { toast('请输入邮箱名'); return; }
+  if (!local.includes('@')) local = local + '@' + DOMAIN;
+  if (!local.endsWith('@' + DOMAIN)) { toast('必须是 @' + DOMAIN + ' 域名'); return; }
+  const r = await api('/api/addresses', { method: 'POST', body: JSON.stringify({ local, note }) });
+  if (!r.ok) { toast(r.error || '新建失败'); return; }
+  await loadAddrPool();
+  document.getElementById('new-addr-box').classList.add('hidden');
+  document.getElementById('n_local').value = '';
+  document.getElementById('n_note').value = '';
+  await fillFromSelect(local);
+  toast('✅ 已新建 ' + local);
+}
+
+// ---------- 收件箱（支持按收件账号过滤 + 多选模式批量删除） ----------
+async function showInbox(to) {
+  if (to === undefined) to = curInboxTo; else curInboxTo = to;
+  setActive('nav-inbox');
+  const r = await api('/api/messages' + (to ? '?to=' + encodeURIComponent(to) : ''));
+  const list = r || [];
+  document.getElementById('inbox-cnt').textContent = list.length || '';
+  const ids = list.map(m => m.id);
+  // 多选按钮默认常驻；点了才出现 全选/删除所选/取消 和行内勾选框
+  const selBar = inboxSelMode
+    ? `<label class="msel-all"><input type="checkbox" onclick="toggleSelAll(this, [${ids.join(',')}])"> 全选</label>
+       <button class="btn danger" onclick="bulkDelMsgs()">删除所选</button>
+       <button class="btn" onclick="toggleSelMode()">取消</button>`
+    : `<button class="btn" onclick="toggleSelMode()">多选</button>`;
+  document.getElementById('view').innerHTML = `
+    <div class="card">
+      <div class="card-h">
+        收件箱${to ? ' · <span style="color:var(--text2)">' + esc(to) + '</span>' : ''}
+        <span class="tag">共 ${list.length} 封</span>
+        ${selBar}
+        <button class="btn" style="margin-left:auto" onclick="showInbox('${esc(to)}')">刷新</button>
+      </div>
+      ${list.length ? list.map(m => `
+        <div class="mrow" onclick="readMsg(${m.id})">
+          ${inboxSelMode ? `<input type="checkbox" class="msel" ${selIds.has(m.id) ? 'checked' : ''} onclick="event.stopPropagation();toggleSel(${m.id},this)" />` : ''}
+          <div class="avatar">${esc(initial(m.from_addr))}</div>
+          <div class="from">${esc(m.from_addr)}</div>
+          <div class="subj">${esc(m.subject || '(无主题)')}</div>
+          <div class="time">${fmtTime(m.received_at)}</div>
+        </div>`).join('') : '<div class="empty">' + (to ? esc(to) + ' 还没有收到邮件' : '还没有收到邮件') + '</div>'}
+    </div>`;
+}
+function toggleSelMode() { inboxSelMode = !inboxSelMode; if (!inboxSelMode) selIds.clear(); showInbox(); }
+function toggleSel(id, cb) { if (cb.checked) selIds.add(id); else selIds.delete(id); }
+function toggleSelAll(cb, ids) {
+  if (cb.checked) ids.forEach(i => selIds.add(i)); else selIds.clear();
+  document.querySelectorAll('.msel').forEach(x => x.checked = cb.checked);
+}
+async function bulkDelMsgs() {
+  const ids = [...selIds];
+  if (!ids.length) { toast('请先勾选要删除的邮件'); return; }
+  confirmModal({
+    title: '批量删除邮件',
+    body: `确定要删除选中的 <b>${ids.length}</b> 封邮件吗？<br>删除后不可恢复。`,
+    okText: '删除', danger: true,
+    onOk: async () => {
+      await api('/api/messages/bulk-delete', { method: 'POST', body: JSON.stringify({ ids }) });
+      selIds.clear(); inboxSelMode = false;
+      toast('✅ 已移入已删除 ' + ids.length + ' 封'); showInbox();
+    }
+  });
+}
+async function readMsg(id) {
+  const m = await api('/api/messages/' + id);
+  if (!m) return;
+  setActive('nav-inbox');
+  document.getElementById('view').innerHTML = `
+    <div class="card">
+      <div class="read-h">
+        <h2>${esc(m.subject || '(无主题)')}</h2>
+        <div class="meta">发件人：<b>${esc(m.from_addr)}</b><br>收件人：<b>${esc(m.to_addr)}</b> · ${new Date(m.received_at).toLocaleString()}</div>
+        <div class="ops">
+          <button class="btn" onclick="replyTo('${esc(m.from_addr)}','${esc(m.subject || '')}')">回复</button>
+          <button class="btn" onclick="addContact('${esc(m.from_addr)}')">⭐ 加为重要联系人</button>
+          <button class="btn danger" onclick="delMsg(${m.id})">删除</button>
+          <button class="btn" onclick="showInbox()">返回收件箱</button>
+        </div>
+      </div>
+      <div class="read-body">${esc(m.body_text || '(空)')}</div>
+    </div>`;
+}
+async function delMsg(id) {
+  confirmModal({
+    title: '删除邮件',
+    body: '确定删除这封邮件吗？删除后可在「其他 → 已删除」中恢复。',
+    okText: '删除', danger: true,
+    onOk: async () => {
+      await api('/api/messages/' + id, { method: 'DELETE' });
+      toast('已移入已删除'); showInbox();
+    }
+  });
+}
+
+// ---------- 写信（附件 + 发件人下拉 + 内联新建邮箱 + 草稿） ----------
+function showCompose(prefill = {}) {
+  setActive('');
+  atts = [];
+  window.currentDraftId = prefill.draftId || null;
+  document.getElementById('view').innerHTML = `
+    <div class="card">
+      <div class="c-toolbar">
+        <button class="btn primary" id="sendbtn" onclick="sendMail()">发送</button>
+        <button class="btn" id="attbtn" onclick="document.getElementById('file-in').click()">📎 添加附件</button>
+        <button class="btn" onclick="saveDraft()">存草稿</button>
+        <button class="btn" onclick="showInbox()">取消</button>
+        <input type="file" id="file-in" multiple style="display:none" onchange="addFiles(this.files)" />
+      </div>
+      <div class="c-row">
+        <label>发件人</label>
+        <div class="selwrap"><select id="f_from"></select>
+        <button class="btn" onclick="openNewAddr()">+ 新建邮箱</button></div>
+      </div>
+      <div class="new-addr-box hidden" id="new-addr-box">
+        <input id="n_local" placeholder="名字（如 taobao）或 完整地址" style="width:300px" />
+        <input id="n_note" placeholder="备注（如 淘宝注册）" style="width:200px" />
+        <button class="btn primary" onclick="saveNewAddr()">保存</button>
+        <button class="btn" onclick="cancelNewAddr()">取消</button>
+      </div>
+      <div class="c-row"><label>收件人</label><input id="f_to" placeholder="收件人邮箱，多个用逗号隔开" value="${esc(prefill.to || '')}" /></div>
+      <div class="c-row"><label>主　题</label><input id="f_subject" placeholder="主题" value="${esc(prefill.subject || '')}" /></div>
+      <div class="c-row"><label></label><textarea id="f_text" placeholder="正文…"></textarea></div>
+      <div class="c-atts" id="att-list"></div>
+      <div class="up-progress hidden" id="up-progress"><div class="track"><div class="bar" id="up-bar"></div></div><span id="up-pct">0%</span></div>
+      <div class="c-foot">发件人来自「账号池」，可在此一键新建；邮件以 @${DOMAIN} 身份经安全通道发出，对方看不到真实邮箱。附件单文件 ≤ 30MB、总量 ≤ 30MB（Resend 按编码后 40MB 计费上限，恰好 30MB 属临界值，建议 ≤ 28MB）。</div>
+    </div>`;
+  renderAtts();
+  fillFromSelect(prefill.from);
+}
+function renderAtts() {
+  const box = document.getElementById('att-list');
+  if (!box) return;
+  box.innerHTML = atts.map((a, i) => `
+    <div class="att" ${a.loading ? 'style="opacity:.6"' : ''}><span class="nm">${esc(a.filename)}</span><span class="sz">${a.loading ? '读取中…' : (a.failed ? '读取失败' : fmtSize(a.size))}</span><button class="x" onclick="rmAtt(${i})">✕</button></div>
+  `).join('') + (atts.length ? `<span style="color:var(--text3);font-size:12px">共 ${fmtSize(atts.reduce((s,a)=>s+a.size,0))}</span>` : '');
+}
+function addFiles(files) {
+  if (sending) { toast('发送中，暂不能修改附件'); return; }
+  let pendingTotal = atts.reduce((s, a) => s + a.size, 0);   // 同步累计，防止多选时异步读取导致总量校验失效
+  for (const f of files) {
+    if (f.size > MAX_SINGLE) { toast(f.name + ' 超过 ' + fmtSize(MAX_SINGLE) + '，已跳过'); continue; }
+    if (pendingTotal + f.size > MAX_TOTAL) { toast('附件总量将超过 ' + fmtSize(MAX_TOTAL) + '，' + f.name + ' 已跳过'); continue; }
+    pendingTotal += f.size;
+    const att = { filename: f.name, type: f.type || 'application/octet-stream', size: f.size, content: '', loading: true, loaded: 0 };
+    atts.push(att);
+    const rd = new FileReader();
+    rd.onload = () => { att.content = rd.result.split(',')[1]; att.loading = false; att.loaded = att.size; updateProgress(); renderAtts(); };
+    rd.onprogress = (e) => { if (e.lengthComputable) { att.loaded = e.loaded; updateProgress(); } };
+    rd.onerror = () => { att.loading = false; att.failed = true; updateProgress(); renderAtts(); toast(f.name + ' 读取失败，请移除后重试'); };
+    rd.readAsDataURL(f);
+  }
+  document.getElementById('file-in').value = '';
+  updateProgress();
+  renderAtts();
+}
+function updateProgress() {
+  const box = document.getElementById('up-progress');
+  if (!box) return;
+  const total = atts.reduce((s, a) => s + a.size, 0);
+  const loaded = atts.reduce((s, a) => s + Math.min(a.loaded || 0, a.size), 0);
+  const reading = atts.some(a => a.loading);
+  if (!total || (!reading && atts.every(a => a.content || a.failed))) {
+    if (!reading) { box.classList.add('hidden'); box.dataset.done = '1'; }
+    return;
+  }
+  box.classList.remove('hidden');
+  const pct = total ? Math.min(100, Math.floor(loaded / total * 100)) : 0;
+  document.getElementById('up-bar').style.width = pct + '%';
+  document.getElementById('up-pct').textContent = '读取附件 ' + pct + '%';
+}
+function rmAtt(i) { if (sending) { toast('发送中，暂不能修改附件'); return; } atts.splice(i, 1); updateProgress(); renderAtts(); }
+
+async function sendMail() {
+  if (sending) return;
+  const btn = document.getElementById('sendbtn');
+  const attBtn = document.getElementById('attbtn');
+  const from = document.getElementById('f_from').value;
+  if (!from || from === '__new__') { toast('请选择或新建发件人'); return; }
+  // 发送前二次校验附件大小（单文件 ≤40MB、总量 ≤40MB）
+  const overs = atts.filter(a => a.size > MAX_SINGLE);
+  if (overs.length) { toast(overs.map(a => a.filename).join('、') + ' 超过 ' + fmtSize(MAX_SINGLE) + '，请先移除'); return; }
+  if (atts.reduce((s, a) => s + a.size, 0) > MAX_TOTAL) { toast('附件总量超过 ' + fmtSize(MAX_TOTAL) + '，请移除部分附件'); return; }
+  if (atts.some(a => a.loading || (!a.content && !a.failed))) { toast('附件还在读取中，请稍候'); return; }
+  if (atts.some(a => a.failed)) { toast('有附件读取失败，请先移除'); return; }
+  sending = true;
+  btn.disabled = true; btn.textContent = '发送中…';
+  if (attBtn) { attBtn.disabled = true; attBtn.style.opacity = '.5'; attBtn.style.cursor = 'default'; }
+  const r = await api('/api/send', { method: 'POST', body: JSON.stringify({
+    from,
+    to: document.getElementById('f_to').value.trim(),
+    subject: document.getElementById('f_subject').value.trim(),
+    text: document.getElementById('f_text').value,
+    attachments: atts.map(a => ({ filename: a.filename, type: a.type, content: a.content })),
+  })});
+  sending = false;
+  btn.disabled = false; btn.textContent = '发送';
+  if (attBtn) { attBtn.disabled = false; attBtn.style.opacity = ''; attBtn.style.cursor = ''; }
+  if (r.ok) { toast('✅ 发送成功'); showInbox(); }
+  else {
+    let msg = r.error || '';
+    try { const d = JSON.parse(r.detail || ''); msg = d.message || msg; } catch (e) {}
+    toast('发送失败：' + (msg || (r.detail || '').slice(0, 80) || '未知'));
+  }
+}
+
+// 存草稿（新建或更新当前草稿）
+async function saveDraft() {
+  const d = {
+    id: window.currentDraftId || undefined,
+    from: (document.getElementById('f_from') || {}).value || '',
+    to: (document.getElementById('f_to') || {}).value.trim(),
+    subject: (document.getElementById('f_subject') || {}).value.trim(),
+    text: (document.getElementById('f_text') || {}).value,
+  };
+  const r = await api('/api/drafts', { method: 'POST', body: JSON.stringify(d) });
+  if (r.ok) { window.currentDraftId = r.id; toast('✅ 已存草稿'); }
+  else toast(r.error || '存草稿失败');
+}
+
+// ---------- 已发送（可按发件账号过滤） ----------
+async function showSent(from) {
+  if (from === undefined) from = window.curSentFrom || ''; else window.curSentFrom = from;
+  setActive('nav-sent');
+  const list = await api('/api/sent' + (from ? '?from=' + encodeURIComponent(from) : '')) || [];
+  document.getElementById('view').innerHTML = `
+    <div class="card">
+      <div class="card-h">已发送${from ? ' · <span style="color:var(--text2)">' + esc(from) + '</span>' : ''}
+        <span class="tag">共 ${list.length} 封</span>
+        ${from ? `<button class="btn" onclick="showSent('')">查看全部</button>` : ''}
+        <button class="btn" style="margin-left:auto" onclick="showSent('${esc(from)}')">刷新</button></div>
+      ${list.length ? list.map(m => `
+        <div class="mrow" onclick="readSent(${m.id})">
+          <div class="avatar">${esc(initial(m.to_addr))}</div>
+          <div class="from">${esc(m.to_addr)}</div>
+          <div class="subj">${esc(m.subject || '(无主题)')}</div>
+          <div class="time">${fmtTime(m.sent_at)}</div>
+        </div>`).join('') : '<div class="empty">还没有发送过邮件</div>'}
+    </div>`;
+}
+async function readSent(id) {
+  const m = await api('/api/sent/' + id);
+  if (!m) return;
+  setActive('nav-sent');
+  document.getElementById('view').innerHTML = `
+    <div class="card">
+      <div class="read-h">
+        <h2>${esc(m.subject || '(无主题)')}</h2>
+        <div class="meta">发件人：<b>${esc(m.from_addr)}</b><br>收件人：<b>${esc(m.to_addr)}</b> · ${new Date(m.sent_at).toLocaleString()}</div>
+        <div class="ops">
+          <button class="btn danger" onclick="delSent(${m.id})">删除</button>
+          <button class="btn" onclick="showSent()">返回已发送</button>
+        </div>
+      </div>
+      <div class="read-body">${esc(m.body_text || '(空)')}</div>
+    </div>`;
+}
+async function delSent(id) {
+  confirmModal({
+    title: '删除已发邮件', body: '确定从「已发送」中删除这封邮件吗？', okText: '删除', danger: true,
+    onOk: async () => { await api('/api/sent/' + id, { method: 'DELETE' }); toast('已删除'); showSent(); }
+  });
+}
+
+// ---------- 草稿箱 ----------
+async function showDrafts() {
+  setActive('nav-drafts');
+  const list = await api('/api/drafts') || [];
+  document.getElementById('view').innerHTML = `
+    <div class="card">
+      <div class="card-h">草稿箱 <span class="tag">共 ${list.length} 封</span>
+        <button class="btn" style="margin-left:auto" onclick="showDrafts()">刷新</button></div>
+      ${list.length ? list.map(m => `
+        <div class="mrow" onclick="openDraft(${m.id})">
+          <div class="avatar">📝</div>
+          <div class="from">${esc(m.to_addr || '（未填写收件人）')}</div>
+          <div class="subj">${esc(m.subject || '(无主题)')}</div>
+          <div class="time">${fmtTime(m.updated_at)}</div>
+        </div>`).join('') : '<div class="empty">暂无草稿，写信页可「存草稿」</div>'}
+    </div>`;
+}
+async function openDraft(id) {
+  const m = await api('/api/drafts/' + id);
+  if (!m) return;
+  showCompose({ draftId: m.id, from: m.from_addr, to: m.to_addr, subject: m.subject || '' });
+  const t = document.getElementById('f_text');
+  if (t) t.value = m.body_text || '';
+}
+async function delDraft(id) {
+  await api('/api/drafts/' + id, { method: 'DELETE' });
+  toast('草稿已删除'); showDrafts();
+}
+
+// ---------- 星标邮箱 ----------
+async function showStarred() {
+  setActive('nav-star');
+  if (!addrPool.length) await loadAddrPool();
+  const list = addrPool.filter(a => a.starred);
+  const rows = list.map(a => `
+    <div class="arow">
+      <div class="avatar avatar-btn" title="点击更换头像" onclick="changeAvatar('${esc(a.local)}')">${a.avatar ? `<img src="${a.avatar}" alt=""/>` : esc(initial(a.local))}</div>
+      <div class="loc">${esc(a.local)}</div><div class="note">${esc(a.note || '')}</div>
+      <button class="btn" onclick="toggleStar('${esc(a.local)}')">★ 取消星标</button>
+      <button class="btn" onclick="showCompose({ from: '${esc(a.local)}' })">发信</button>
+      <button class="btn" onclick="showInbox('${esc(a.local)}')">收件箱</button>
+    </div>`).join('');
+  document.getElementById('view').innerHTML = `
+    <div class="card">
+      <div class="card-h">星标邮箱 <span class="tag">${list.length} 个 · 在账号池点 ☆ 加星</span></div>
+      ${rows || '<div class="empty">还没有星标邮箱</div>'}
+    </div>`;
+}
+// 账号星标切换
+async function toggleStar(local) {
+  const a = addrPool.find(x => x.local === local);
+  const r = await api('/api/addresses', { method: 'POST', body: JSON.stringify({
+    local, starred: !(a && a.starred), note: (a && a.note) || '', avatar: (a && a.avatar) || undefined
+  })});
+  if (r.ok) { await loadAddrPool(); showAddr(); }
+  else toast(r.error || '操作失败');
+}
+
+// ---------- 已删除（软删除的信） ----------
+async function showDeleted() {
+  setActive('nav-del');
+  const list = await api('/api/messages?deleted=1') || [];
+  document.getElementById('view').innerHTML = `
+    <div class="card">
+      <div class="card-h">已删除 <span class="tag">共 ${list.length} 封 · 保留 30 天，到期自动清理</span>
+        <button class="btn" style="margin-left:auto" onclick="showDeleted()">刷新</button></div>
+      ${list.length ? list.map(m => `
+        <div class="mrow" style="opacity:.75">
+          <div class="avatar">${esc(initial(m.from_addr))}</div>
+          <div class="from">${esc(m.from_addr)}</div>
+          <div class="subj">${esc(m.subject || '(无主题)')}</div>
+          <div class="time">${fmtTime(m.received_at)}</div>
+          <button class="btn" onclick="restoreMsg(${m.id})">恢复</button>
+          <button class="btn danger" onclick="purgeMsg(${m.id})">彻底删除</button>
+        </div>`).join('') : '<div class="empty">已删除为空</div>'}
+    </div>`;
+}
+async function restoreMsg(id) { await api('/api/messages/' + id, { method: 'POST' }); toast('已恢复到收件箱'); showDeleted(); }
+async function purgeMsg(id) {
+  confirmModal({
+    title: '彻底删除', body: '确定彻底删除这封邮件吗？此操作不可恢复。', okText: '彻底删除', danger: true,
+    onOk: async () => { await api('/api/messages/' + id + '?purge=1', { method: 'DELETE' }); toast('已彻底删除'); showDeleted(); }
+  });
+}
+
+// ---------- 垃圾箱（占位） ----------
+async function showJunk() {
+  setActive('nav-junk');
+  document.getElementById('view').innerHTML = `
+    <div class="card">
+      <div class="card-h">垃圾箱</div>
+      <div class="empty">暂未接入垃圾邮件识别，收到的信都在收件箱里</div>
+    </div>`;
+}
+
+// ---------- 重要联系人 ----------
+async function showContacts() {
+  setActive('nav-contact');
+  const list = await api('/api/contacts') || [];
+  const rows = list.map(c => `
+    <div class="arow">
+      <div class="avatar">${esc(initial(c.addr))}</div>
+      <div class="loc">${esc(c.addr)}</div>
+      <button class="btn" onclick="showCompose({ to: '${esc(c.addr)}' })">发信</button>
+      <button class="btn danger" onclick="removeContact('${encodeURIComponent(c.addr)}')">移除</button>
+    </div>`).join('');
+  document.getElementById('view').innerHTML = `
+    <div class="card">
+      <div class="card-h">重要联系人 <span class="tag">${list.length} 位 · 读信页可点「加为重要联系人」</span></div>
+      ${rows || '<div class="empty">暂无重要联系人</div>'}
+    </div>`;
+}
+async function removeContact(enc) {
+  await api('/api/contacts/' + enc, { method: 'DELETE' });
+  toast('已移除'); showContacts();
+}
+
+// ---------- 云盘（D1 分块存储，500MB） ----------
+function fileIcon(type) {
+  const t = (type || '');
+  if (t.startsWith('image/')) return '🖼️';
+  if (t.startsWith('video/')) return '🎬';
+  if (t.startsWith('audio/')) return '🎵';
+  if (t.includes('pdf')) return '📕';
+  if (t.includes('zip') || t.includes('rar') || t.includes('7z')) return '🗜️';
+  if (t.startsWith('text/')) return '📄';
+  return '📦';
+}
+let driveUploading = false;
+async function showDrive() {
+  setActive('nav-drive');
+  const r = await api('/api/drive');
+  const files = (r && r.files) || [];
+  const used = (r && r.used) || 0, quota = (r && r.quota) || (350 * 1048576);
+  const pct = Math.min(100, Math.floor(used / quota * 100));
+  document.getElementById('view').innerHTML = `
+    <div class="card">
+      <div class="card-h">云盘 <span class="tag">${files.length} 个文件</span>
+        <button class="btn primary" id="drv-up" onclick="document.getElementById('drv-file').click()">⬆ 上传</button>
+        <input type="file" id="drv-file" multiple style="display:none" onchange="driveUpload(this.files)" />
+      </div>
+      <div style="padding:12px 18px;border-bottom:1px solid var(--border)">
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text3);margin-bottom:6px">
+          <span>空间占用：已用 ${fmtSize(used)} / ${fmtSize(quota)} · 单文件 ≤ 25MB</span>
+          <span>${pct}%</span>
+        </div>
+        <div class="drv-track"><div class="drv-bar" style="width:${pct}%"></div></div>
+      </div>
+      <div id="drv-list" style="position:relative">
+      <div class="up-progress hidden" id="drv-progress" style="margin:10px 18px"><div class="track"><div class="bar" id="drv-bar"></div></div><span id="drv-pct"></span></div>
+      ${files.length ? files.map(f => `
+        <div class="arow">
+          <div class="avatar" style="font-size:18px;background:transparent">${fileIcon(f.type)}</div>
+          <div class="loc" style="min-width:0;flex:1">${esc(f.name)}</div>
+          <div class="note" style="flex:0 0 auto">${fmtSize(f.size)} · ${fmtTime(f.created_at)}</div>
+          <button class="btn" onclick="shareFile(${f.id},'${esc(f.name)}')">分享</button>
+          <button class="btn" onclick="shareRecords(${f.id},'${esc(f.name)}')">分享记录</button>
+          <button class="btn" onclick="location.href='/api/drive/${f.id}?tk=${state.tk}'">下载</button>
+          <button class="btn" onclick="renameFile(${f.id},'${esc(f.name)}')">重命名</button>
+          <button class="btn danger" onclick="delFile(${f.id},'${esc(f.name)}')">删除</button>
+        </div>`).join('') : '<div class="empty">云盘是空的，点右上角「上传」</div>'}
+      </div>
+    </div>`;
+}
+async function shareFile(id, name) {
+  const mask = document.createElement('div');
+  mask.className = 'modal-mask';
+  mask.innerHTML = `
+    <div class="modal-card">
+      <h3>分享文件</h3>
+      <div class="m-body">${esc(name)}</div>
+      <label style="display:flex;align-items:center;gap:8px;font-size:13.5px;cursor:pointer;margin-bottom:10px">
+        <input type="checkbox" id="sh-has" style="width:16px;height:16px;accent-color:var(--accent)" onchange="document.getElementById('sh-code').classList.toggle('hidden',!this.checked)" />
+        需要提取码
+      </label>
+      <input id="sh-code" class="hidden" placeholder="提取码（留空随机生成）" maxlength="16" style="width:100%;margin-bottom:10px" />
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+        <span style="font-size:13px;color:var(--text2)">有效期</span>
+        <select id="sh-exp" style="flex:1">
+          <option value="">永久有效</option>
+          <option value="1">1 小时</option>
+          <option value="24">24 小时</option>
+          <option value="72">3 天</option>
+          <option value="168">7 天</option>
+          <option value="720">30 天</option>
+        </select>
+      </div>
+      <div id="sh-result"></div>
+      <div class="m-ops" style="margin-top:14px">
+        <button class="btn" id="sh-cancel">取消</button>
+        <button class="btn primary" id="sh-ok">创建链接</button>
+      </div></div>`;
+  document.body.appendChild(mask);
+  const close = () => mask.remove();
+  mask.addEventListener('click', e => { if (e.target === mask) close(); });
+  mask.querySelector('#sh-cancel').onclick = close;
+  mask.querySelector('#sh-ok').onclick = async () => {
+    const has = mask.querySelector('#sh-has').checked;
+    let code = mask.querySelector('#sh-code').value.trim();
+    if (has && !code) code = String(Math.floor(1000 + Math.random() * 9000));   // 随机 4 位
+    if (has && !/^[A-Za-z0-9]+$/.test(code)) { toast('提取码只能用字母或数字'); return; }
+    const expires = mask.querySelector('#sh-exp').value;
+    const expLabel = mask.querySelector('#sh-exp').selectedOptions[0].textContent;
+    const r = await api('/api/drive/' + id + '/share', { method: 'POST', body: JSON.stringify({ code: has ? code : null, expires: expires ? Number(expires) : null }) });
+    if (!r.ok) { toast(r.error || '创建分享失败'); return; }
+    mask.querySelector('#sh-result').innerHTML = `
+      <div style="border:1px solid var(--border);border-radius:10px;padding:12px;background:var(--panel-bg);margin-top:10px">
+        <div style="font-size:12px;color:var(--text3);margin-bottom:6px">分享链接（${esc(expLabel)}${r.code ? ' · 已含提取码，打开即下' : ''}）</div>
+        <div style="font-size:13px;word-break:break-all;color:var(--text2)">${esc(r.code ? r.url + '=' + r.code : r.url)}</div>
+        ${r.code ? `<div style="font-size:12.5px;margin-top:6px;color:var(--text3)">原始链接：<span style="word-break:break-all">${esc(r.url)}</span> · 提取码：<b style="letter-spacing:3px;color:var(--text)">${esc(r.code)}</b></div>` : ''}
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button class="btn" id="cp-url">${r.code ? '复制带码链接' : '复制链接'}</button>
+          ${r.code ? '<button class="btn" id="cp-raw">复制原始链接</button><button class="btn" id="cp-code">复制提取码</button>' : ''}
+        </div>
+      </div>`;
+    mask.querySelector('#sh-ok').textContent = '已创建 ✓';
+    mask.querySelector('#sh-ok').disabled = true;
+    const cp = (text) => {
+      (navigator.clipboard ? navigator.clipboard.writeText(text) : Promise.reject()).then(
+        () => { toast('✅ 已复制'); },
+        () => { toast('复制失败，请手动选择复制'); }
+      );
+    };
+    mask.querySelector('#cp-url').onclick = e => cp(r.code ? r.url + '=' + r.code : r.url);
+    const cr = mask.querySelector('#cp-raw');
+    if (cr) cr.onclick = e => cp(r.url);
+    const cc = mask.querySelector('#cp-code');
+    if (cc) cc.onclick = e => cp(r.code);
+  };
+}
+function driveUploadOne(file, onProgress) {
+  // 二进制直传：请求体就是文件字节，XHR 才能拿到真实上传进度
+  return new Promise((res, rej) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', '/api/drive?name=' + encodeURIComponent(file.name) + '&type=' + encodeURIComponent(file.type || 'application/octet-stream'));
+    xhr.setRequestHeader('Authorization', 'Bearer ' + state.tk);
+    xhr.responseType = 'json';
+    xhr.upload.onprogress = e => { if (e.lengthComputable) onProgress(e.loaded / e.total); };
+    xhr.onload = () => res(xhr.response || { ok: false, error: 'HTTP ' + xhr.status });
+    xhr.onerror = () => rej(new Error('network'));
+    xhr.send(file);
+  });
+}
+async function driveUpload(fileList) {
+  if (driveUploading) return;
+  const files = [...fileList];
+  document.getElementById('drv-file').value = '';
+  if (!files.length) return;
+  driveUploading = true;
+  const prog = document.getElementById('drv-progress');
+  prog.classList.remove('hidden');
+  const bar = document.getElementById('drv-bar'), pct = document.getElementById('drv-pct');
+  for (const f of files) {
+    if (f.size > DRIVE_MAX) { toast(f.name + ' 超过 25MB，已跳过'); continue; }
+    try {
+      const r = await driveUploadOne(f, p => {
+        const w = Math.floor(p * 100);
+        bar.style.width = w + '%'; pct.textContent = '上传 ' + f.name + ' ' + w + '%';
+      });
+      if (!r.ok) toast(r.error || (f.name + ' 上传失败'));
+    } catch (e) { toast(f.name + ' 上传失败（网络错误）'); }
+  }
+  driveUploading = false;
+  toast('✅ 上传完成'); showDrive();
+}
+async function previewFile(id, type, name) {
+  const t = (type || '');
+  if (t.startsWith('image/')) { window.open('/api/drive/' + id + '?inline=1', '_blank'); return; }
+  if (t.startsWith('text/') || /json|javascript|xml|csv/.test(t)) {
+    const resp = await fetch('/api/drive/' + id + '?inline=1', { headers: { Authorization: 'Bearer ' + state.tk } });
+    const text = await resp.text();
+    const mask = document.createElement('div');
+    mask.className = 'modal-mask';
+    mask.innerHTML = `<div class="modal-card" style="width:640px;max-width:92vw">
+      <h3>${esc(name)}</h3>
+      <div class="read-body" style="max-height:60vh;overflow:auto;border:1px solid var(--border);border-radius:8px;margin-top:8px">${esc(text.slice(0, 50000))}</div>
+      <div class="m-ops" style="margin-top:12px"><button class="btn" id="pv-close">关闭</button></div></div>`;
+    document.body.appendChild(mask);
+    mask.addEventListener('click', e => { if (e.target === mask) mask.remove(); });
+    mask.querySelector('#pv-close').onclick = () => mask.remove();
+    return;
+  }
+  location.href = '/api/drive/' + id;
+}
+function renameFile(id, oldName) {
+  inputModal('重命名', '新文件名', oldName, async (name) => {
+    const r = await api('/api/drive/' + id, { method: 'POST', body: JSON.stringify({ name }) });
+    if (r.ok) { toast('✅ 已重命名'); showDrive(); } else toast(r.error || '失败');
+  });
+}
+function delFile(id, name) {
+  confirmModal({
+    title: '删除文件', body: `确定删除 <b>${esc(name)}</b> 吗？删除后空间立即释放，不可恢复。`, okText: '删除', danger: true,
+    onOk: async () => { await api('/api/drive/' + id, { method: 'DELETE' }); toast('已删除'); showDrive(); }
+  });
+}
+// 输入弹窗（页面内卡片，替代原生 prompt）
+function inputModal(title, placeholder, value, onOk) {
+  const mask = document.createElement('div');
+  mask.className = 'modal-mask';
+  mask.innerHTML = `
+    <div class="modal-card">
+      <h3>${esc(title)}</h3>
+      <input id="im-val" placeholder="${esc(placeholder)}" style="width:100%;margin:8px 0 4px" />
+      <div class="m-ops" style="margin-top:12px">
+        <button class="btn" id="im-cancel">取消</button>
+        <button class="btn primary" id="im-ok">确定</button>
+      </div></div>`;
+  document.body.appendChild(mask);
+  const inp = mask.querySelector('#im-val');
+  inp.value = value || '';
+  setTimeout(() => { inp.focus(); inp.select(); }, 30);
+  const close = () => mask.remove();
+  mask.addEventListener('click', e => { if (e.target === mask) close(); });
+  const ok = () => { const v = inp.value.trim(); if (!v) { toast('不能为空'); return; } close(); onOk(v); };
+  mask.querySelector('#im-cancel').onclick = close;
+  mask.querySelector('#im-ok').onclick = ok;
+  inp.onkeydown = e => { if (e.key === 'Enter') ok(); };
+}
+
+// 复制文本（剪贴板 + toast）
+function copyText(text, okMsg) {
+  (navigator.clipboard ? navigator.clipboard.writeText(text) : Promise.reject()).then(
+    () => toast(okMsg || '✅ 已复制'),
+    () => toast('复制失败，请手动复制')
+  );
+}
+// 分享记录（历史链接 / 提取码 / 有效期 / 下载次数 / 取消）
+async function shareRecords(id, name) {
+  const list = await api('/api/drive/' + id + '/shares') || [];
+  const rows = list.map(s => {
+    const expired = s.expires_at && s.expires_at < Date.now();
+    const exp = s.expires_at ? new Date(s.expires_at).toLocaleString() + (expired ? '（已过期）' : '') : '永久有效';
+    const url = location.origin + '/s/' + s.token + (s.code ? '=' + s.code : '');
+    return `
+    <div class="arow" style="${expired ? 'opacity:.55' : ''}">
+      <div class="loc" style="min-width:0;flex:1;font-size:12.5px;word-break:break-all">${esc(url)}</div>
+      <div class="note" style="flex:0 0 auto">码:${esc(s.code || '无')} · ${esc(exp)} · 下载 ${s.downloads || 0} 次</div>
+      <button class="btn" onclick="copyText('${url}','✅ 链接已复制')">复制</button>
+      <button class="btn danger" onclick="cancelShare('${s.token}',${id},'${esc(name)}')">${expired ? '删除' : '取消分享'}</button>
+    </div>`;
+  }).join('');
+  const mask = document.createElement('div');
+  mask.className = 'modal-mask';
+  mask.innerHTML = `
+    <div class="modal-card" style="width:620px;max-width:94vw">
+      <h3>分享记录 · ${esc(name)}</h3>
+      <div style="max-height:60vh;overflow:auto;margin-top:8px">
+        ${rows || '<div class="empty">还没有创建过分享</div>'}
+      </div>
+      <div class="m-ops" style="margin-top:14px"><button class="btn" id="sr-close">关闭</button></div>
+    </div>`;
+  document.body.appendChild(mask);
+  mask.addEventListener('click', e => { if (e.target === mask) mask.remove(); });
+  mask.querySelector('#sr-close').onclick = () => mask.remove();
+}
+async function cancelShare(token, id, name) {
+  confirmModal({
+    title: '取消分享', body: '取消后该链接立即失效，对方将无法再下载。确定取消吗？', okText: '取消分享', danger: true,
+    onOk: async () => {
+      await api('/api/share/' + token, { method: 'DELETE' });
+      toast('✅ 分享已取消'); shareRecords(id, name);
+    }
+  });
+}
+
+// ---------- 通讯录（完整版） ----------
+async function showContactsApp() {
+  setActive('nav-contacts');
+  const list = await api('/api/contacts') || [];
+  const q = (window.contactQ || '').trim().toLowerCase();
+  const shown = q ? list.filter(c => (c.addr + (c.name || '') + (c.note || '')).toLowerCase().includes(q)) : list;
+  const rows = shown.map(c => `
+    <div class="arow">
+      <div class="avatar">${esc(initial(c.name || c.addr))}</div>
+      <div class="loc" style="min-width:140px">${esc(c.name || '（未命名）')}</div>
+      <div class="note">${esc(c.addr)}${c.note ? ' · ' + esc(c.note) : ''}</div>
+      <button class="btn" onclick="showCompose({ to: '${esc(c.addr)}' })">发信</button>
+      <button class="btn" onclick="editContact('${encodeURIComponent(c.addr)}','${esc(c.name || '')}','${esc(c.note || '')}')">编辑</button>
+      <button class="btn danger" onclick="removeContactApp('${encodeURIComponent(c.addr)}')">删除</button>
+    </div>`).join('');
+  document.getElementById('view').innerHTML = `
+    <div class="card">
+      <div class="card-h">通讯录 <span class="tag">${list.length} 位联系人</span></div>
+      <div class="addr-form">
+        <input id="ct_name" placeholder="姓名" style="width:120px" />
+        <input id="ct_addr" placeholder="邮箱地址（必填）" style="width:240px" />
+        <input id="ct_note" placeholder="备注" style="width:160px" />
+        <button class="btn primary" onclick="saveContact()">添加</button>
+        <input id="ct_q" placeholder="🔍 搜索" style="width:140px;margin-left:auto" value="${esc(window.contactQ || '')}" oninput="window.contactQ=this.value;clearTimeout(window._ctT);window._ctT=setTimeout(showContactsApp,300)" />
+      </div>
+      ${rows || '<div class="empty">暂无联系人，读信页或上方表单均可添加</div>'}
+    </div>`;
+}
+async function saveContact() {
+  const name = (document.getElementById('ct_name') || {}).value || '';
+  const addr = (document.getElementById('ct_addr') || {}).value || '';
+  const note = (document.getElementById('ct_note') || {}).value || '';
+  if (!addr.trim() || !addr.includes('@')) { toast('请输入有效邮箱地址'); return; }
+  const r = await api('/api/contacts', { method: 'POST', body: JSON.stringify({ addr: addr.trim(), name: name.trim(), note: note.trim() }) });
+  if (r.ok) { toast('✅ 已保存'); showContactsApp(); } else toast(r.error || '保存失败');
+}
+function editContact(enc, name, note) {
+  inputModal('编辑备注（' + decodeURIComponent(enc) + '）', '姓名｜备注（用 / 分隔）', (name || '') + '/' + (note || ''), async (v) => {
+    const [n, ...rest] = v.split('/');
+    const r = await api('/api/contacts', { method: 'POST', body: JSON.stringify({ addr: decodeURIComponent(enc), name: n.trim(), note: rest.join('/').trim() }) });
+    if (r.ok) { toast('✅ 已更新'); showContactsApp(); } else toast(r.error || '失败');
+  });
+}
+async function removeContactApp(enc) {
+  confirmModal({
+    title: '删除联系人', body: '确定从通讯录删除该联系人吗？', okText: '删除', danger: true,
+    onOk: async () => { await api('/api/contacts/' + enc, { method: 'DELETE' }); toast('已删除'); showContactsApp(); }
+  });
+}
+
+// ---------- 记事本 ----------
+let noteEditingId = null;
+async function showNotes() {
+  setActive('nav-notes');
+  const list = await api('/api/notes') || [];
+  document.getElementById('view').innerHTML = `
+    <div class="card">
+      <div class="card-h">记事本 <span class="tag">${list.length} 篇笔记</span>
+        <button class="btn" style="margin-left:auto" onclick="noteNew()">➕ 新笔记</button></div>
+      <div style="padding:14px 18px;border-bottom:1px solid var(--border)">
+        <input id="nt_title" placeholder="标题" style="width:100%;margin-bottom:8px" />
+        <textarea id="nt_content" placeholder="正文…" style="width:100%;min-height:180px;resize:vertical"></textarea>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button class="btn primary" onclick="noteSave()">保存</button>
+          <button class="btn" onclick="noteNew()">清空编辑器</button>
+          <span class="bar-sel" id="nt_state">${noteEditingId ? '正在编辑 #' + noteEditingId : '新建笔记'}</span>
+        </div>
+      </div>
+      ${list.length ? list.map(n => `
+        <div class="arow">
+          <div class="avatar" style="background:transparent;font-size:18px">📝</div>
+          <div class="loc" style="min-width:0;flex:1;cursor:pointer" onclick="noteOpen(${n.id})">${esc(n.title || '无标题')}</div>
+          <div class="note">${fmtTime(n.updated_at)}</div>
+          <button class="btn" onclick="noteOpen(${n.id})">编辑</button>
+          <button class="btn danger" onclick="noteDel(${n.id})">删除</button>
+        </div>`).join('') : '<div class="empty">暂无笔记</div>'}
+    </div>`;
+}
+function noteNew() {
+  noteEditingId = null;
+  const t = document.getElementById('nt_title'), c = document.getElementById('nt_content'), s = document.getElementById('nt_state');
+  if (t) { t.value = ''; c.value = ''; s.textContent = '新建笔记'; }
+}
+async function noteOpen(id) {
+  const n = await api('/api/notes/' + id);
+  if (!n) return;
+  noteEditingId = id;
+  showNotes().then(() => {
+    document.getElementById('nt_title').value = n.title || '';
+    document.getElementById('nt_content').value = n.content || '';
+    document.getElementById('nt_state').textContent = '正在编辑 #' + id;
+  });
+}
+async function noteSave() {
+  const title = (document.getElementById('nt_title') || {}).value || '';
+  const content = (document.getElementById('nt_content') || {}).value || '';
+  const r = await api('/api/notes', { method: 'POST', body: JSON.stringify({ id: noteEditingId || undefined, title, content }) });
+  if (r.ok) { toast('✅ 已保存'); noteEditingId = r.id; await showNotes(); await noteOpen(r.id); }
+  else toast(r.error || '保存失败');
+}
+async function noteDel(id) {
+  confirmModal({
+    title: '删除笔记', body: '确定删除这篇笔记吗？', okText: '删除', danger: true,
+    onOk: async () => { await api('/api/notes/' + id, { method: 'DELETE' }); if (noteEditingId === id) noteEditingId = null; toast('已删除'); showNotes(); }
+  });
+}
+
+// 加为重要联系人
+async function addContact(addr) {
+  const r = await api('/api/contacts', { method: 'POST', body: JSON.stringify({ addr }) });
+  if (r.ok) toast('✅ 已加入重要联系人');
+  else toast(r.error || '操作失败');
+}
+
+// ---------- 账号池管理页（单账号操作 + 多选模式批量删除） ----------
+async function showAddr() {
+  setActive('nav-addr');
+  const r = await api('/api/addresses');
+  const list = r || [];
+  const locals = list.map(a => a.local);
+  const selBar = addrSelMode
+    ? `<label class="msel-all"><input type="checkbox" onclick="toggleSelAddrAll(this, ${JSON.stringify(locals).replace(/"/g, '&quot;')})"> 全选</label>
+       <button class="btn danger" onclick="bulkDelAddrs()">删除所选</button>
+       <button class="btn" onclick="toggleAddrSelMode()">取消</button>`
+    : `<button class="btn" onclick="toggleAddrSelMode()">多选</button>`;
+  const rows = list.map(a => `
+    <div class="arow">
+      ${addrSelMode ? `<input type="checkbox" class="msel" ${selAddrs.has(a.local) ? 'checked' : ''} onclick="toggleSelAddr('${esc(a.local)}',this)" />` : ''}
+      <div class="avatar avatar-btn" title="点击更换头像" onclick="changeAvatar('${esc(a.local)}')">${a.avatar ? `<img src="${a.avatar}" alt=""/>` : esc(initial(a.local))}</div>
+      <div class="loc">${esc(a.local)}${a.starred ? ' <span style="color:var(--orange)">★</span>' : ''}</div><div class="note">${esc(a.note || '')}</div>
+      <button class="btn" title="${a.starred ? '取消星标' : '加星标'}" onclick="toggleStar('${esc(a.local)}')">${a.starred ? '★' : '☆'}</button>
+      <button class="btn" onclick="showCompose({ from: '${esc(a.local)}' })">发信</button>
+      <button class="btn" onclick="showSent('${esc(a.local)}')">发信记录</button>
+      <button class="btn" onclick="showInbox('${esc(a.local)}')">收件箱</button>
+      <button class="btn danger" onclick="delAddr('${encodeURIComponent(a.local)}')">删除</button>
+    </div>`).join('');
+  document.getElementById('view').innerHTML = `
+    <div class="card">
+      <div class="card-h">
+        账号池 <span class="tag">已创建 ${list.length} 个发信身份，写信时可下拉选择</span>
+        ${selBar}
+      </div>
+      <div class="addr-form">
+        <input id="a_local" placeholder="名字（如 taobao）或 完整地址" style="width:280px" />
+        <input id="a_note" placeholder="备注" style="width:160px" />
+        <button class="btn primary" onclick="addAddr()">添加</button>
+      </div>
+      ${rows || '<div class="empty">暂无邮箱，点上方添加</div>'}
+    </div>`;
+}
+function toggleAddrSelMode() { addrSelMode = !addrSelMode; if (!addrSelMode) selAddrs.clear(); showAddr(); }
+
+// ---------- 账号头像：选图 → 页面内裁剪 → 128x128 JPEG 存库 ----------
+function changeAvatar(local) {
+  if (sending) return;
+  const inp = document.createElement('input');
+  inp.type = 'file'; inp.accept = 'image/*';
+  inp.onchange = () => {
+    const f = inp.files[0];
+    if (!f) return;
+    if (f.size > 10 * 1048576) { toast('图片请小于 10MB'); return; }
+    const rd = new FileReader();
+    rd.onload = () => openCropper(local, rd.result);
+    rd.readAsDataURL(f);
+  };
+  inp.click();
+}
+function openCropper(local, dataUrl) {
+  const mask = document.createElement('div');
+  mask.className = 'modal-mask';
+  mask.innerHTML = `
+    <div class="modal-card" style="width:auto;max-width:92vw">
+      <h3>裁剪头像 · ${esc(local)}</h3>
+      <canvas id="crop-cv" width="280" height="280" class="crop-cv"></canvas>
+      <div class="crop-tip">拖动调整位置 · 滚轮或滑杆缩放 · 方框内为最终头像</div>
+      <input type="range" id="crop-zoom" min="1" max="4" step="0.01" value="1" style="width:100%;margin-top:8px" />
+      <div class="m-ops" style="margin-top:12px">
+        <button class="btn" id="crop-cancel">取消</button>
+        <button class="btn primary" id="crop-ok">确认使用</button>
+      </div>
+    </div>`;
+  document.body.appendChild(mask);
+  const close = () => { window.removeEventListener('pointermove', onMove); window.removeEventListener('pointerup', onUp); mask.remove(); };
+  const cv = mask.querySelector('#crop-cv'), ctx = cv.getContext('2d');
+  const slider = mask.querySelector('#crop-zoom');
+  const img = new Image();
+  let scale = 1, base = 1, ox = 0, oy = 0, dragging = false, lx = 0, ly = 0;
+  function draw() {
+    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--bg2') || '#241d3a';
+    ctx.fillRect(0, 0, 280, 280);
+    ctx.drawImage(img, ox, oy, img.width * scale, img.height * scale);
+    ctx.strokeStyle = 'rgba(255,255,255,0.9)'; ctx.lineWidth = 1.5;
+    ctx.strokeRect(20, 20, 240, 240);
+  }
+  function clampPos() {
+    const w = img.width * scale, h = img.height * scale;
+    ox = w >= 280 ? Math.min(0, Math.max(ox, 280 - w)) : (280 - w) / 2;
+    oy = h >= 280 ? Math.min(0, Math.max(oy, 280 - h)) : (280 - h) / 2;
+  }
+  function setScale(s) { scale = Math.min(base * 4, Math.max(base, s)); clampPos(); draw(); slider.value = (scale / base).toFixed(2); }
+  img.onload = () => { base = Math.max(280 / img.width, 280 / img.height); scale = base; ox = (280 - img.width * scale) / 2; oy = (280 - img.height * scale) / 2; draw(); };
+  img.src = dataUrl;
+  cv.addEventListener('pointerdown', e => { dragging = true; lx = e.clientX; ly = e.clientY; cv.setPointerCapture(e.pointerId); });
+  function onMove(e) { if (!dragging) return; ox += e.clientX - lx; oy += e.clientY - ly; lx = e.clientX; ly = e.clientY; clampPos(); draw(); }
+  function onUp() { dragging = false; }
+  window.addEventListener('pointermove', onMove);
+  window.addEventListener('pointerup', onUp);
+  cv.addEventListener('wheel', e => { e.preventDefault(); setScale(scale * (e.deltaY < 0 ? 1.1 : 0.9)); }, { passive: false });
+  slider.addEventListener('input', () => setScale(base * parseFloat(slider.value)));
+  mask.addEventListener('click', e => { if (e.target === mask) close(); });
+  mask.querySelector('#crop-cancel').onclick = close;
+  mask.querySelector('#crop-ok').onclick = () => {
+    const out = document.createElement('canvas');
+    out.width = out.height = 128;
+    out.getContext('2d').drawImage(cv, 20, 20, 240, 240, 0, 0, 128, 128);
+    const avatar = out.toDataURL('image/jpeg', 0.85);
+    saveAvatar(local, avatar, close);
+  };
+}
+async function saveAvatar(local, avatar, close) {
+  const a = addrPool.find(x => x.local === local);
+  const r = await api('/api/addresses', { method: 'POST', body: JSON.stringify({ local, note: (a && a.note) || '', avatar }) });
+  if (!r.ok) { toast(r.error || '头像保存失败'); return; }
+  await loadAddrPool();
+  close();
+  showAddr();
+  toast('✅ 头像已更新');
+}
+function toggleSelAddr(local, cb) { if (cb.checked) selAddrs.add(local); else selAddrs.delete(local); }
+function toggleSelAddrAll(cb, locals) {
+  if (cb.checked) locals.forEach(l => selAddrs.add(l)); else selAddrs.clear();
+  document.querySelectorAll('#view .msel').forEach(x => x.checked = cb.checked);
+}
+async function bulkDelAddrs() {
+  const locals = [...selAddrs];
+  if (!locals.length) { toast('请先勾选要删除的账号'); return; }
+  confirmModal({
+    title: '批量删除账号',
+    body: `确定要删除选中的 <b>${locals.length}</b> 个邮箱身份吗？<br>已用它们发出的邮件不受影响，但之后无法再以这些身份发信。`,
+    okText: '删除', danger: true,
+    onOk: async () => {
+      for (const l of locals) await api('/api/addresses/' + encodeURIComponent(l), { method: 'DELETE' });
+      selAddrs.clear(); addrSelMode = false;
+      await loadAddrPool(); showAddr(); toast('✅ 已删除 ' + locals.length + ' 个账号');
+    }
+  });
+}
+async function addAddr() {
+  let local = document.getElementById('a_local').value.trim();
+  const note = document.getElementById('a_note').value.trim();
+  if (!local) { toast('请输入邮箱名'); return; }
+  if (!local.includes('@')) local = local + '@' + DOMAIN;
+  if (!local.endsWith('@' + DOMAIN)) { toast('必须是 @' + DOMAIN); return; }
+  const r = await api('/api/addresses', { method: 'POST', body: JSON.stringify({ local, note }) });
+  if (r.ok) { await loadAddrPool(); showAddr(); } else toast(r.error || '添加失败');
+}
+async function delAddr(encoded) {
+  const local = decodeURIComponent(encoded);
+  confirmModal({
+    title: '删除账号',
+    body: `确定删除邮箱身份 <b>${esc(local)}</b> 吗？<br>已用该身份发出的邮件不受影响，但之后无法再以它发信。`,
+    okText: '删除', danger: true,
+    onOk: async () => {
+      await api('/api/addresses/' + encoded, { method: 'DELETE' });
+      selAddrs.delete(local);
+      await loadAddrPool(); showAddr(); toast('✅ 已删除 ' + local);
+    }
+  });
+}
+
+// 回复预填（发件人默认选账号池第一个）
+function replyTo(addr, subject) {
+  const first = addrPool.length ? addrPool[0].local : '';
+  showCompose({ from: first, to: addr, subject: '回复：' + (subject || '') });
+}
+
+// 已有 token 直接进
+initGroups();
+if (state.tk) enter();
+</script>
+</body>
+</html>
