@@ -1,0 +1,33 @@
+name = "mailproxy-worker"
+main = "src/后端.js"
+compatibility_date = "2024-11-01"
+
+# ===== Cloudflare 账号 =====
+# 部署前请填入你自己的 Cloudflare 账号 ID（登录 https://dash.cloudflare.com 后，右侧「账户 ID」）。
+# 也可用 `wrangler login`（交互式）自动识别。开源版不附带任何具体账号信息。
+# account_id = "your-cloudflare-account-id"
+
+# 自定义域：在 Cloudflare 面板把你的域名绑定到本 Worker（或用下方 routes）。
+# 如希望直接通过 <sub>.workers.dev 访问，把下行改为 true。
+workers_dev = false
+
+# 静态前端（管理后台 UI，GET / 返回 frontend/index.html）
+assets = { directory = "./frontend", binding = "ASSETS" }
+
+# ===== D1 数据库（邮件元数据） =====
+# 部署前用 `wrangler d1 create mailproxy` 创建数据库，并把返回的 id 填到 database_id。
+[[d1_databases]]
+binding = "DB"
+database_name = "mailproxy"
+# database_id = "your-d1-mailproxy-id"
+
+# ===== D1 云盘库（独立 500MB，文件分块存储） =====
+# 部署前用 `wrangler d1 create drive` 创建，把返回的 id 填到 database_id。
+[[d1_databases]]
+binding = "DRV"
+database_name = "drive"
+# database_id = "your-d1-drive-id"
+
+# 每日定时任务（UTC 20:00 = 北京时间凌晨 4 点）：清理已删除超过 30 天的邮件 + 过期分享
+[triggers]
+crons = ["0 20 * * *"]
